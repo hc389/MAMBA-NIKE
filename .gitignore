@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+.venv/
+
+# Sphinx docs
+docs/_apidoc/
+docs/_build/
+
+# Sage generated files
+*.sage.py
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
