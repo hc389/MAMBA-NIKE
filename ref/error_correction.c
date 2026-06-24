@@ -11,15 +11,10 @@ static int32_t abs(int32_t v)
 
 static int32_t f(int32_t *v0, int32_t *v1, int32_t x)
 {
-  int32_t xit, t, r, b;
-  
-  // Next 6 lines compute t = x/PARAM_Q;
-  b = x*2730;
-  t = b >> 25;
-  b = x - t*12289;
-  b = 12288 - b;
-  b >>= 31;
-  t -= b;
+  int32_t xit, t, r;
+
+  /* For power-of-2 q: t = x / q = x >> LOG2Q (exact for x >= 0) */
+  t = x >> LOG2Q;
 
   r = t & 1;
   xit = (t>>1);
@@ -34,15 +29,10 @@ static int32_t f(int32_t *v0, int32_t *v1, int32_t x)
 
 static int32_t g(int32_t x)
 {
-  int32_t t,c,b;
+  int32_t t,c;
 
-  // Next 6 lines compute t = x/(4*PARAM_Q);
-  b = x*2730;
-  t = b >> 27;
-  b = x - t*49156;
-  b = 49155 - b;
-  b >>= 31;
-  t -= b;
+  /* For power-of-2 q: t = x / (4*q) = x >> (LOG2Q + 2) */
+  t = x >> (LOG2Q + 2);
 
   c = t & 1;
   t = (t >> 1) + c; // t = round(x/(8*PARAM_Q))

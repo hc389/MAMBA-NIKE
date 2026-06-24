@@ -12,9 +12,15 @@ void poly_uniform(poly *a, const unsigned char *seed);
 void poly_getnoise(poly *r, unsigned char *seed, unsigned char nonce);
 void poly_add(poly *r, const poly *a, const poly *b);
 
+/* Schoolbook negacyclic convolution r = a*b in Z_q[x]/(x^n+1) */
+void poly_convolution(poly *r, const poly *a, const poly *b);
+
+/* Aliased to convolution since NTT is unavailable with q=2^16 */
+void poly_pointwise(poly *r, const poly *a, const poly *b);
+
+/* NTT wrappers — no-ops with schoolbook convolution */
 void poly_ntt(poly *r);
 void poly_invntt(poly *r);
-void poly_pointwise(poly *r, const poly *a, const poly *b);
 
 void poly_frombytes(poly *r, const unsigned char *a);
 void poly_tobytes(unsigned char *r, const poly *p);
