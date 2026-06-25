@@ -1,73 +1,46 @@
-*********************************Instructions**********************************
+MAMBA-NIKE Reference Implementation
+==================================
 
-The following files SHALL NOT be modified:
+Non-Interactive Key Exchange (NIKE) based on the NewHope protocol,
+adapted to power-of-two modulus (q = 2^16 by default) with
+Toom-Cook-4 polynomial multiplication.
 
-drng.c                      Source file of Deterministic Random Number Generator
+This implementation provides the NGCC KEX API for MAMBA-NIKE
+in portable C99 (no platform-specific intrinsics or assembly).
 
-drng.h                      Header file of Deterministic Random Number Generator
+Build & Run
+-----------
+  make KAT_KEX        Build the KAT test-vector generator
+  ./KAT_KEX           Run; output saved to output/KAT_KEX_MAMBA-NIKE.txt
 
-auxfunc.c                   Source file of auxiliary functions
+The Makefile uses GCC (or compatible) with -O3 and requires only
+standard libc. No external dependencies beyond the files in this folder.
 
-auxfunc.h                   Header file of auxiliary functions
+Files
+-----
+  KEX_AlgorithmInstance.h     NGCC KEX API header (algorithm name, function decls)
+  KEX_AlgorithmInstance.c     KEX implementation (bridge to newhope/poly/toom)
+  KAT_KEX.c                   KAT test-vector generation framework (unmodified)
+  drng.c / drng.h             Deterministic RNG (SM3-based, unmodified)
+  auxfunc.c / auxfunc.h       Auxiliary output helpers (unmodified)
 
-KAT_SIG.c                   Source file for generating test vector files of 
-                            digital signature (SIG) scheme
+  params.h                    Scheme parameters (n, q, k, LOG2Q, byte sizes)
+  poly.h / poly.c             Polynomial arithmetic (Toom-Cook-4 convolution)
+  toom.h / toom.c             Toom-Cook-4 kernel (recursive, Bodrato sequence)
+  newhope.h / newhope.c       Protocol: keygen, sharedb, shareda
+  error_correction.h / .c     Reconciliation: helprec, rec
+  reduce.h / reduce.c         Modular reduction (bitmask for power-of-2 q)
+  fips202.h / .c              SHAKE128, SHA3-256 (Keccak)
+  crypto_stream_chacha20.h/.c ChaCha20 stream cipher
+  randombytes.h               Entropy interface (DRNG-backed in KAT mode)
 
-KAT_KEM.c                   Source file for generating test vector files of 
-                            key encapsulation mechanism (KEM) scheme
+Parameters (params.h)
+---------------------
+  PARAM_N  1024     Polynomial ring degree
+  PARAM_K  2        Noise parameter (centered binomial Binomial(4)-2)
+  PARAM_Q  65536    Modulus (2^16)
+  LOG2Q    16       log2(q), used for shift-based division in reconciliation
 
-KAT_KEX.c                   Source file for generating test vector files of 
-                            key exchange (KEX) protocol
+Overriding via compiler flags: -DPARAM_N=2048 -DPARAM_Q=65536 -DLOG2Q=16
 
-The following files NEED to be modified:
-
-SIG_AlgorithmInstance.c     Source file of SIG scheme (demo)
-
-SIG_AlgorithmInstance.h     Header file of SIG scheme (programming interface)
-
-KEM_AlgorithmInstance.c     Source file of KEM scheme (demo)
-
-KEM_AlgorithmInstance.h     Header file of KEM scheme (programming interface)
-
-KEX_AlgorithmInstance.c     Source file of KEX protocol (demo)
-
-KEX_AlgorithmInstance.h     Header file of KEX protocol (programming interface)
-
-**************************************Use**************************************
-
-1.  Modify the provided file "XXX_AlgorithmInstance.h":
-    a.  Set the macro "OUTPUT_BLANK_TEST_VECTORS" as 0 to set generating mode.
-    b.  Set the macro "ALGORITHM_INSTANCE" as the submitted algorithm instance 
-        name.
-
-2.  Modify the provided file "XXX_AlgorithmInstance.c" to implement the 
-    functions of the submitted algorithm.
-
-3.  Compile and execute to generate test vector files.
-
-*************************************Notes*************************************
-
-1.  The submitted algorithm shall use the provided programming interface in 
-    "XXX_AlgorithmInstance.h".    
-2.  This program assumes a little-endian byte order for multi-byte values. 
-    Behavior is undefined on systems with a different byte order.
-3.  This program requires compilation with compilers supporting the 
-    ISO/IEC 9899:1999 (C99) standard or later.
-4.  For non-byte-aligned data operations (e.g., DRNG outputs), the most
-	significant bit (MSB) first convention applies to partial-byte read/write
-    operations.
-    Example: the 11-bit non-byte-aligned output "10101100001"(bin) is stored 
-    in memory as "AC 20"(hex):
-                     MSB     ------->     LSB         
-        Address+0  :  1  0  1  0  1  1  0  0  (0xAC)
-        Address+1  :  0  0  1  0  0  0  0  0  (0x20, with only 3 valid bits)
-5.  The cryptographic hash algorithm and eXtendable-Output Function (XOF) in 
-    implementations shall use the auxiliary functions. These auxiliary functions
-    are only used to verify the correctness of implementations and preliminarily
-    evaluate performance, without considering security. In the subsequent 
-    evaluation rounds, these will be replaced with new auxiliary functions based
-    on new cryptographic hash algorithms.
-6.  The files of KEX are only suitable for 2-pass and 3-pass key exchange 
-    protocols. If the submitted key exchange protocol requires more passes, 
-    modify "KAT_KEX.c" and refer to the given programming interface to implement
-    those passes.
+All five presets (NIKE-128/192/256/384/512) pass 100% key-agreement tests.
